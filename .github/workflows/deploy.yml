@@ -1,4 +1,4 @@
-name: Build and Push to GHCR
+name: Build and Push Unified Full-Stack Container to GHCR
  
 on:
   push:
@@ -7,8 +7,7 @@ on:
  
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/amanongith/ai-personal-brand-marketing-engine-backend
-  FRONTEND_IMAGE: ghcr.io/amanongith/ai-personal-brand-marketing-engine-frontend
+  IMAGE_NAME: ghcr.io/amanongith/ai-personal-brand-marketing-engine
  
 jobs:
   build-and-push:
@@ -20,6 +19,24 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+ 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+ 
+      - name: Install Frontend Dependencies and Build
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+ 
+      - name: Copy Frontend Build to Spring Boot Static Resources
+        run: |
+          mkdir -p backend/personal-brand-engine/src/main/resources/static
+          cp -r frontend/dist/* backend/personal-brand-engine/src/main/resources/static/
  
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -34,32 +51,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
  
-      - name: Extract metadata (tags, labels) for Backend
-        id: meta-backend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.BACKEND_IMAGE }}
- 
-      - name: Build and push Backend Docker image
+      - name: Build and push unified Full-Stack Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./backend/personal-brand-engine
           file: ./backend/personal-brand-engine/Dockerfile
           push: true
-          tags: ${{ env.BACKEND_IMAGE }}:latest
-          labels: ${{ steps.meta-backend.outputs.labels }}
- 
-      - name: Extract metadata (tags, labels) for Frontend
-        id: meta-frontend
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.FRONTEND_IMAGE }}
- 
-      - name: Build and push Frontend Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: ${{ env.FRONTEND_IMAGE }}:latest
-          labels: ${{ steps.meta-frontend.outputs.labels }}
+          tags: ${{ env.IMAGE_NAME }}:latest
