@@ -28,6 +28,10 @@ spring:
   
   profiles:
     active: dev
+ 
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 server:
   port: ${PORT:8080}
