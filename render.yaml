@@ -5,11 +5,6 @@ services:
     env: docker
     dockerfilePath: backend/personal-brand-engine/Dockerfile
     dockerContext: .
-    plan: starter
-    disk:
-      name: brand-data
-      mountPath: /app/data
-      sizeGB: 1
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: dev
@@ -20,4 +15,3 @@ services:
     env: docker
     dockerfilePath: frontend/Dockerfile
     dockerContext: .
-    plan: starter
