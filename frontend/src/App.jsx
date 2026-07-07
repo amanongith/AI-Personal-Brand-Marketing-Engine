@@ -117,7 +117,9 @@ function App() {
   const [contentsList, setContentsList] = useState([]);
 
   // Base URL
-  const baseUrl = `http://localhost:${backendPort}`;
+  const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? `http://${window.location.hostname}:${backendPort}`
+    : '';
 
   // Helper for fetch requests
   const apiFetch = async (endpoint, options = {}) => {
@@ -231,7 +233,9 @@ function App() {
   useEffect(() => {
     if (backendStatus !== 'online') return;
 
-    const wsUrl = `ws://localhost:${backendPort}/ws-notifications`;
+    const wsUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? `ws://${window.location.hostname}:${backendPort}/ws-notifications`
+      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}/ws-notifications`;
     console.log("Connecting to WebSocket: ", wsUrl);
     const socket = new WebSocket(wsUrl);
 

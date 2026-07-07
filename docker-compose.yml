@@ -1,0 +1,30 @@
+version: '3.8'
+ 
+services:
+  backend:
+    build:
+      context: ./backend/personal-brand-engine
+      dockerfile: Dockerfile
+    container_name: brand-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend-data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_H2_CONSOLE_SETTINGS_WEB_ALLOW_OTHERS=true
+    restart: always
+ 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: brand-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+ 
+volumes:
+  backend-data:
