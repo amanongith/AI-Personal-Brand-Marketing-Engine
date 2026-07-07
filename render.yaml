@@ -1,0 +1,25 @@
+services:
+  # Backend Spring Boot Service
+  - type: web
+    name: brand-backend
+    env: docker
+    dockerfilePath: backend/personal-brand-engine/Dockerfile
+    dockerContext: .
+    plan: starter
+    port: 8080
+    disk:
+      name: brand-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: dev
+ 
+  # Frontend Vite Nginx Proxy Service
+  - type: web
+    name: brand-frontend
+    env: docker
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: .
+    plan: starter
+    port: 80
