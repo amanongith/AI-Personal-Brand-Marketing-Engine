@@ -7,8 +7,8 @@ on:
  
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE_NAME: ${{ github.repository }}-backend
-  FRONTEND_IMAGE_NAME: ${{ github.repository }}-frontend
+  BACKEND_IMAGE: ghcr.io/amanongith/ai-personal-brand-marketing-engine-backend
+  FRONTEND_IMAGE: ghcr.io/amanongith/ai-personal-brand-marketing-engine-frontend
  
 jobs:
   build-and-push:
@@ -38,7 +38,7 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}
+          images: ${{ env.BACKEND_IMAGE }}
  
       - name: Build and push Backend Docker image
         uses: docker/build-push-action@v5
@@ -46,14 +46,14 @@ jobs:
           context: ./backend/personal-brand-engine
           file: ./backend/personal-brand-engine/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:latest
+          tags: ${{ env.BACKEND_IMAGE }}:latest
           labels: ${{ steps.meta-backend.outputs.labels }}
  
       - name: Extract metadata (tags, labels) for Frontend
         id: meta-frontend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}
+          images: ${{ env.FRONTEND_IMAGE }}
  
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v5
@@ -61,5 +61,5 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:latest
+          tags: ${{ env.FRONTEND_IMAGE }}:latest
           labels: ${{ steps.meta-frontend.outputs.labels }}
