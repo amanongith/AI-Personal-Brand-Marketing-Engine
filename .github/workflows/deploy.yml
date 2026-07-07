@@ -20,24 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
  
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
- 
-      - name: Install Frontend Dependencies and Build
-        run: |
-          cd frontend
-          npm ci
-          npm run build
- 
-      - name: Copy Frontend Build to Spring Boot Static Resources
-        run: |
-          mkdir -p backend/personal-brand-engine/src/main/resources/static
-          cp -r frontend/dist/* backend/personal-brand-engine/src/main/resources/static/
- 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
  
@@ -54,7 +36,7 @@ jobs:
       - name: Build and push unified Full-Stack Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend/personal-brand-engine
-          file: ./backend/personal-brand-engine/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ env.IMAGE_NAME }}:latest
