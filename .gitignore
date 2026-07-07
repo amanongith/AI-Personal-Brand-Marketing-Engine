@@ -1,0 +1,32 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.code-workspace
+ 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+ 
+# Backend
+backend/personal-brand-engine/target/
+backend/personal-brand-engine/.flattened-pom.xml
+backend/personal-brand-engine/data/
+backend/personal-brand-engine/*.log
+backend/personal-brand-engine/.project
+backend/personal-brand-engine/.classpath
+backend/personal-brand-engine/.settings/
+backend/personal-brand-engine/bin/
+ 
+# System
+.DS_Store
+Thumbs.db
