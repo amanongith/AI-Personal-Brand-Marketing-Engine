@@ -116,6 +116,13 @@ function App() {
   // Drafts & Contents List
   const [contentsList, setContentsList] = useState([]);
 
+  // Connected Social Accounts
+  const [connectedAccounts, setConnectedAccounts] = useState([]);
+
+  // Inline scheduling helpers
+  const [schedulingItemId, setSchedulingItemId] = useState(null);
+  const [scheduledTimeInput, setScheduledTimeInput] = useState('');
+
   // Base URL
   const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? `http://${window.location.hostname}:${backendPort}`
@@ -218,11 +225,45 @@ function App() {
     } catch (e) {
       console.warn("Failed to load analytics:", e);
     }
+
+    // 6. Connected Social Accounts
+    try {
+      const accounts = await apiFetch(`/api/oauth/accounts`);
+      if (accounts) setConnectedAccounts(accounts);
+    } catch (e) {
+      console.warn("Failed to load connected social accounts:", e);
+    }
   };
 
   useEffect(() => {
     checkConnection();
   }, [backendPort]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connectedPlatform = params.get('connected');
+    const oauthErrorParam = params.get('error');
+
+    if (connectedPlatform) {
+      setNotifications(prev => [
+        { id: Date.now(), type: 'PUBLISH', message: `Successfully connected your ${connectedPlatform.toUpperCase()} account!` },
+        ...prev
+      ]);
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
+        loadAllData();
+      }
+    }
+    if (oauthErrorParam) {
+      setNotifications(prev => [
+        { id: Date.now(), type: 'ERROR', message: `OAuth connection failed: ${oauthErrorParam}` },
+        ...prev
+      ]);
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [backendStatus, token]);
 
   useEffect(() => {
     if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
@@ -580,6 +621,189 @@ function App() {
     setGenInstructions(`This post is inspired by the event on my calendar: ${event.title}. ${event.description || ''}`);
   };
 
+  // Social OAuth & Connections handlers
+  const handleConnectSocial = async (platform) => {
+    try {
+      if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
+        const frontendOrigin = window.location.origin;
+        const res = await apiFetch(`/api/oauth/connect/${platform}?frontendOrigin=${encodeURIComponent(frontendOrigin)}`);
+        if (res && res.redirectUrl) {
+          window.location.href = res.redirectUrl;
+        }
+      } else {
+        // Mock connection in demo mode
+        setTimeout(() => {
+          const newAccount = {
+            id: Date.now(),
+            platform: platform.toUpperCase(),
+            username: `Mock User (${platform})`,
+            profileImageUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
+            socialAccountId: `mock_${platform}_id`
+          };
+          setConnectedAccounts(prev => [...prev, newAccount]);
+          setNotifications(prev => [
+            { id: Date.now(), type: 'PUBLISH', message: `Successfully connected Mock ${platform.toUpperCase()} account!` },
+            ...prev
+          ]);
+        }, 800);
+      }
+    } catch (err) {
+      console.error("Failed to connect social account:", err);
+      setNotifications(prev => [
+        { id: Date.now(), type: 'ERROR', message: `Connection failed: ${err.message}` },
+        ...prev
+      ]);
+    }
+  };
+
+  const handleDisconnectSocial = async (platform) => {
+    try {
+      if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
+        await apiFetch(`/api/oauth/disconnect/${platform}`, {
+          method: 'DELETE'
+        });
+        setConnectedAccounts(prev => prev.filter(acc => acc.platform !== platform.toUpperCase()));
+        setNotifications(prev => [
+          { id: Date.now(), type: 'INFO', message: `Disconnected ${platform.toUpperCase()} account.` },
+          ...prev
+        ]);
+      } else {
+        // Mock disconnect in demo mode
+        setConnectedAccounts(prev => prev.filter(acc => acc.platform !== platform.toUpperCase()));
+        setNotifications(prev => [
+          { id: Date.now(), type: 'INFO', message: `Disconnected Mock ${platform.toUpperCase()} account.` },
+          ...prev
+        ]);
+      }
+    } catch (err) {
+      console.error("Failed to disconnect social account:", err);
+    }
+  };
+
+  const handlePublishImmediate = async (contentId) => {
+    try {
+      if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
+        const res = await apiFetch(`/api/oauth/publish/${contentId}`, {
+          method: 'POST'
+        });
+        if (res && res.success) {
+          setNotifications(prev => [
+            { id: Date.now(), type: 'PUBLISH', message: `Post successfully published!` },
+            ...prev
+          ]);
+          loadAllData();
+        }
+      } else {
+        // Mock publish in demo mode
+        setTimeout(() => {
+          setContentsList(prev => prev.map(item => 
+            item.id === contentId 
+              ? { ...item, status: 'PUBLISHED', publishedTime: new Date().toISOString() }
+              : item
+          ));
+          setNotifications(prev => [
+            { id: Date.now(), type: 'PUBLISH', message: `Successfully published post (Demo)!` },
+            ...prev
+          ]);
+        }, 800);
+      }
+    } catch (err) {
+      console.error("Failed to publish post:", err);
+      setNotifications(prev => [
+        { id: Date.now(), type: 'ERROR', message: `Publishing failed: ${err.message}` },
+        ...prev
+      ]);
+    }
+  };
+
+  const handleSchedulePost = async (contentId, scheduledTimeStr) => {
+    try {
+      if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
+        await apiFetch(`/api/content/${contentId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            status: 'SCHEDULED',
+            scheduledTime: scheduledTimeStr
+          })
+        });
+        setNotifications(prev => [
+          { id: Date.now(), type: 'INFO', message: `Post successfully scheduled!` },
+          ...prev
+        ]);
+        loadAllData();
+      } else {
+        // Mock schedule in demo mode
+        setContentsList(prev => prev.map(item => 
+          item.id === contentId 
+            ? { ...item, status: 'SCHEDULED', scheduledTime: scheduledTimeStr }
+            : item
+        ));
+        setNotifications(prev => [
+          { id: Date.now(), type: 'INFO', message: `Post successfully scheduled (Demo)!` },
+          ...prev
+        ]);
+      }
+    } catch (err) {
+      console.error("Failed to schedule post:", err);
+      setNotifications(prev => [
+        { id: Date.now(), type: 'ERROR', message: `Scheduling failed: ${err.message}` },
+        ...prev
+      ]);
+    }
+  };
+
+  const handleDeleteContent = async (contentId) => {
+    try {
+      if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
+        await apiFetch(`/api/content/${contentId}`, {
+          method: 'DELETE'
+        });
+        setNotifications(prev => [
+          { id: Date.now(), type: 'INFO', message: `Post deleted successfully.` },
+          ...prev
+        ]);
+        loadAllData();
+      } else {
+        // Mock delete in demo mode
+        setContentsList(prev => prev.filter(item => item.id !== contentId));
+        setNotifications(prev => [
+          { id: Date.now(), type: 'INFO', message: `Post deleted (Demo).` },
+          ...prev
+        ]);
+      }
+    } catch (err) {
+      console.error("Failed to delete content:", err);
+    }
+  };
+
+  const handleRevertToDraft = async (contentId) => {
+    try {
+      if (backendStatus === 'online' && token && token !== 'mock-jwt-token-demo') {
+        await apiFetch(`/api/content/${contentId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            status: 'DRAFT',
+            scheduledTime: null
+          })
+        });
+        setNotifications(prev => [
+          { id: Date.now(), type: 'INFO', message: `Post status changed back to Draft.` },
+          ...prev
+        ]);
+        loadAllData();
+      } else {
+        // Mock revert in demo mode
+        setContentsList(prev => prev.map(item => 
+          item.id === contentId 
+            ? { ...item, status: 'DRAFT', scheduledTime: null }
+            : item
+        ));
+      }
+    } catch (err) {
+      console.error("Failed to revert content to draft:", err);
+    }
+  };
+
   // Auto-connect on startup
   useEffect(() => {
     if (backendStatus === 'online') {
@@ -906,17 +1130,133 @@ function App() {
                 <div className="list-container">
                   {Array.isArray(contentsList) && contentsList.length > 0 ? (
                     contentsList.map(item => (
-                      <div className="list-item" key={item.id}>
-                        <div className="item-info">
-                          <span className={`platform-badge ${item.platform?.toLowerCase() || 'linkedin'}`}>
-                            {item.platform || 'LINKEDIN'}
-                          </span>
-                          <div>
-                            <span className="item-title">{item.title}</span>
-                            <div className="item-meta">Status: Draft &bull; Generated via OpenAI</div>
+                      <div className="list-item" key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', alignItems: 'stretch' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div className="item-info" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                            <span className={`platform-badge ${item.platform?.toLowerCase() || 'linkedin'}`} style={{ margin: 0, minWidth: '85px', textAlign: 'center' }}>
+                              {item.platform || 'LINKEDIN'}
+                            </span>
+                            <div>
+                              <span className="item-title" style={{ fontWeight: 600, fontSize: '14px' }}>{item.title}</span>
+                              <div className="item-meta" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                {item.status === 'PUBLISHED' && `Published • ${new Date(item.publishedTime).toLocaleString()}`}
+                                {item.status === 'SCHEDULED' && `Scheduled • ${new Date(item.scheduledTime).toLocaleString()}`}
+                                {item.status === 'DRAFT' && 'Draft • Ready to publish'}
+                              </div>
+                            </div>
                           </div>
+                          <span className={`item-status ${item.status?.toLowerCase() || 'draft'}`}>
+                            {item.status || 'DRAFT'}
+                          </span>
                         </div>
-                        <span className="item-status draft">DRAFT</span>
+
+                        {item.body && (
+                          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', backgroundColor: 'rgba(255,255,255,0.01)', padding: '10px 14px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)', whiteSpace: 'pre-wrap', maxHeight: '100px', overflowY: 'auto' }}>
+                            {item.body}
+                          </div>
+                        )}
+
+                        {schedulingItemId === item.id && (
+                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', marginTop: '4px' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Choose Time:</span>
+                            <input 
+                              type="datetime-local" 
+                              value={scheduledTimeInput} 
+                              onChange={(e) => setScheduledTimeInput(e.target.value)} 
+                              style={{ padding: '6px 10px', fontSize: '12px', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-primary)' }}
+                            />
+                            <button 
+                              onClick={() => {
+                                if (scheduledTimeInput) {
+                                  handleSchedulePost(item.id, scheduledTimeInput);
+                                  setSchedulingItemId(null);
+                                  setScheduledTimeInput('');
+                                }
+                              }} 
+                              className="btn btn-primary" 
+                              style={{ padding: '6px 12px', fontSize: '11px' }}
+                            >
+                              Confirm
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setSchedulingItemId(null);
+                                setScheduledTimeInput('');
+                              }} 
+                              className="btn btn-secondary" 
+                              style={{ padding: '6px 12px', fontSize: '11px', background: 'transparent' }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '8px' }}>
+                          {item.status === 'DRAFT' && schedulingItemId !== item.id && (
+                            <>
+                              <button 
+                                onClick={() => handlePublishImmediate(item.id)} 
+                                className="btn btn-primary" 
+                                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              >
+                                Publish Now
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setSchedulingItemId(item.id);
+                                  setScheduledTimeInput('');
+                                }} 
+                                className="btn btn-secondary" 
+                                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              >
+                                Schedule
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteContent(item.id)} 
+                                className="btn btn-secondary" 
+                                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#ef4444', backgroundColor: 'transparent' }}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+
+                          {item.status === 'SCHEDULED' && (
+                            <>
+                              <button 
+                                onClick={() => handlePublishImmediate(item.id)} 
+                                className="btn btn-primary" 
+                                style={{ padding: '6px 12px', fontSize: '12px' }}
+                              >
+                                Publish Now
+                              </button>
+                              <button 
+                                onClick={() => handleRevertToDraft(item.id)} 
+                                className="btn btn-secondary" 
+                                style={{ padding: '6px 12px', fontSize: '12px' }}
+                              >
+                                Revert to Draft
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteContent(item.id)} 
+                                className="btn btn-secondary" 
+                                style={{ padding: '6px 12px', fontSize: '12px', color: '#ef4444', backgroundColor: 'transparent' }}
+                              >
+                                Cancel Post
+                              </button>
+                            </>
+                          )}
+
+                          {item.status === 'PUBLISHED' && (
+                            <button 
+                              onClick={() => handleDeleteContent(item.id)} 
+                              className="btn btn-secondary" 
+                              style={{ padding: '6px 12px', fontSize: '12px', color: '#ef4444', backgroundColor: 'transparent' }}
+                            >
+                              Delete from Log
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -1162,6 +1502,93 @@ function App() {
                     {profileStatus === 'success' && <span className="font-14" style={{ color: 'var(--accent-teal)' }}>Details saved successfully!</span>}
                   </div>
                 </form>
+              </div>
+
+              {/* Connected Social Accounts Card */}
+              <div className="card" style={{ marginTop: '24px' }}>
+                <h3 className="margin-b-16">Connected Social Accounts</h3>
+                <p className="font-12 text-muted margin-b-24">
+                  Connect your profiles to publish posts directly and view live analytics.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* LinkedIn */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="platform-badge linkedin" style={{ margin: 0, padding: '6px 12px', minWidth: '80px', textAlign: 'center' }}>LinkedIn</div>
+                      {connectedAccounts.some(acc => acc.platform === 'LINKEDIN') ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {connectedAccounts.find(acc => acc.platform === 'LINKEDIN').profileImageUrl && (
+                            <img src={connectedAccounts.find(acc => acc.platform === 'LINKEDIN').profileImageUrl} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                          )}
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                              {connectedAccounts.find(acc => acc.platform === 'LINKEDIN').username}
+                            </div>
+                            <span style={{ fontSize: '11px', color: 'var(--accent-teal)' }}>Connected</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Not connected</span>
+                      )}
+                    </div>
+                    {connectedAccounts.some(acc => acc.platform === 'LINKEDIN') ? (
+                      <button 
+                        onClick={() => handleDisconnectSocial('linkedin')} 
+                        className="btn btn-secondary" 
+                        style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleConnectSocial('linkedin')} 
+                        className="btn btn-primary" 
+                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Twitter */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="platform-badge twitter" style={{ margin: 0, padding: '6px 12px', minWidth: '80px', textAlign: 'center' }}>Twitter/X</div>
+                      {connectedAccounts.some(acc => acc.platform === 'TWITTER') ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {connectedAccounts.find(acc => acc.platform === 'TWITTER').profileImageUrl && (
+                            <img src={connectedAccounts.find(acc => acc.platform === 'TWITTER').profileImageUrl} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                          )}
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                              {connectedAccounts.find(acc => acc.platform === 'TWITTER').username}
+                            </div>
+                            <span style={{ fontSize: '11px', color: 'var(--accent-teal)' }}>Connected</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Not connected</span>
+                      )}
+                    </div>
+                    {connectedAccounts.some(acc => acc.platform === 'TWITTER') ? (
+                      <button 
+                        onClick={() => handleDisconnectSocial('twitter')} 
+                        className="btn btn-secondary" 
+                        style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleConnectSocial('twitter')} 
+                        className="btn btn-primary" 
+                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

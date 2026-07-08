@@ -16,6 +16,7 @@ public class SchedulerService {
 
     private final ContentRepository contentRepository;
     private final NotificationService notificationService;
+    private final SocialMediaService socialMediaService;
 
     public void schedulePost(Long contentId, LocalDateTime scheduledTime) {
         contentRepository.findById(contentId).ifPresent(content -> {
@@ -41,14 +42,7 @@ public class SchedulerService {
                 .filter(c -> c.getScheduledTime() != null)
                 .filter(c -> c.getScheduledTime().isBefore(now) || c.getScheduledTime().isEqual(now))
                 .forEach(c -> {
-                    c.setStatus("PUBLISHED");
-                    c.setPublishedTime(now);
-                    contentRepository.save(c);
-                    log.info("Post {} published", c.getId());
-                    notificationService.sendContentPublishedNotification(
-                            c.getUser().getEmail(),
-                            c.getTitle()
-                    );
+                    socialMediaService.publishPost(c.getId());
                 });
     }
 }

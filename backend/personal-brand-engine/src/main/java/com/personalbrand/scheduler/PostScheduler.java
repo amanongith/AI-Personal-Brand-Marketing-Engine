@@ -1,38 +1,30 @@
 package com.personalbrand.scheduler;
 
 import com.personalbrand.repository.ContentRepository;
+import com.personalbrand.service.SocialMediaService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Component
+@RequiredArgsConstructor
 public class PostScheduler {
 
     private final ContentRepository contentRepository;
+    private final SocialMediaService socialMediaService;
 
-    public PostScheduler(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    @Scheduled(fixedRate = 300000) // Every 5 minutes
+    @Scheduled(fixedRate = 60000) // Every 1 minute
     public void processScheduledPosts() {
         LocalDateTime now = LocalDateTime.now();
-        var scheduledContent = contentRepository.findByUserIdAndStatus(1L, "SCHEDULED");
+        var scheduledContent = contentRepository.findByStatus("SCHEDULED");
 
         scheduledContent.stream()
                 .filter(content -> content.getScheduledTime() != null &&
                         content.getScheduledTime().isBefore(now))
                 .forEach(content -> {
-                    // Process and publish scheduled posts
-                    content.setStatus("PUBLISHED");
-                    content.setPublishedTime(now);
-                    contentRepository.save(content);
-                    
-                    // Trigger real-time alert
-                    String msg = String.format("Successfully published scheduled post: '%s' to %s", 
-                            content.getTitle(), content.getPlatform());
-                    com.personalbrand.security.NotificationWebSocketHandler.sendNotification("PUBLISH", msg);
+                    socialMediaService.publishPost(content.getId());
                 });
     }
 }

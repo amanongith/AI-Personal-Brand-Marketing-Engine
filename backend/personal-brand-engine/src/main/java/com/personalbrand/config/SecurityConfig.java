@@ -65,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/favicon.svg", "/icons.svg", "/assets/**").permitAll()
                         .requestMatchers("/login", "/register", "/dashboard", "/profile", "/calendar", "/analytics").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/oauth/callback/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/ws-notifications/**").permitAll()

@@ -16,6 +16,8 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     List<Content> findByUserIdAndStatus(Long userId, String status);
 
+    List<Content> findByStatus(String status);
+
     List<Content> findByUserIdAndPlatform(Long userId, String platform);
 
     List<Content> findByUserIdAndStatusAndPublishedTimeIsNull(Long userId, String status);
