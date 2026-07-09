@@ -48,7 +48,7 @@ public class OAuthController {
         // Dynamically compute the callback URL on this server
         String callbackUri = frontendOrigin.contains("localhost") 
                 ? "http://localhost:8080/api/oauth/callback/" + platform.toLowerCase()
-                : "/api/oauth/callback/" + platform.toLowerCase();
+                : frontendOrigin + "/api/oauth/callback/" + platform.toLowerCase();
 
         String authUrl = socialMediaService.getAuthorizationUrl(platform, state, callbackUri);
         
@@ -74,7 +74,7 @@ public class OAuthController {
 
         String callbackUri = frontendOrigin.contains("localhost") 
                 ? "http://localhost:8080/api/oauth/callback/" + platform.toLowerCase()
-                : "/api/oauth/callback/" + platform.toLowerCase();
+                : frontendOrigin + "/api/oauth/callback/" + platform.toLowerCase();
 
         try {
             socialMediaService.handleCallback(platform, code, callbackUri, userId);
