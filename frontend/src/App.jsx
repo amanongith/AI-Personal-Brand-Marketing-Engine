@@ -842,7 +842,7 @@ function App() {
       )}
 
       {/* Main Content Area */}
-      <main className="main-content" style={{ marginLeft: !token ? '0' : 'var(--sidebar-width)' }}>
+      <main className="main-content" style={{ marginLeft: !token ? '0' : '260px' }}>
         
         {/* Connection Header */}
         {token && (

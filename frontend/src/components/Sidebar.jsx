@@ -6,7 +6,8 @@ import {
   Calendar, 
   BarChart3, 
   LogOut, 
-  Sparkles 
+  Sparkles,
+  Settings 
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, userFirstName, userLastName, handleLogout, backendStatus }) {
@@ -63,6 +64,15 @@ export default function Sidebar({ activeTab, setActiveTab, userFirstName, userLa
           >
             <BarChart3 size={18} />
             <span>Brand Analytics</span>
+          </button>
+        </li>
+        <li>
+          <button 
+            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            <Settings size={18} />
+            <span>Server Settings</span>
           </button>
         </li>
       </ul>
