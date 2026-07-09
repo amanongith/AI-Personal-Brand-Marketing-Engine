@@ -78,19 +78,26 @@ export default function Sidebar({ activeTab, setActiveTab, userFirstName, userLa
       </ul>
 
       <div className="sidebar-footer">
-        <div className="user-profile-summary">
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{userFirstName} {userLastName}</span>
-            <span style={{ fontSize: '11px', color: backendStatus === 'online' ? 'var(--accent-teal)' : '#f43f5e', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: backendStatus === 'online' ? 'var(--accent-teal)' : '#f43f5e', display: 'inline-block' }} />
-              {backendStatus === 'online' ? 'Server Connected' : 'Server Offline'}
-            </span>
+        <div className="user-badge" style={{ marginBottom: '16px' }}>
+          <div className="user-avatar">
+            {userFirstName ? userFirstName.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <div className="user-details">
+            <span className="user-name">{userFirstName} {userLastName}</span>
+            <span className="user-role">Creator Account</span>
           </div>
         </div>
-        <button className="btn-logout" onClick={handleLogout}>
-          <LogOut size={16} />
-          <span>Sign Out</span>
-        </button>
+        
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+          <span style={{ fontSize: '11px', color: backendStatus === 'online' ? 'var(--accent-teal)' : '#f43f5e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: backendStatus === 'online' ? 'var(--accent-teal)' : '#f43f5e', display: 'inline-block' }} />
+            {backendStatus === 'online' ? 'Server Connected' : 'Server Offline'}
+          </span>
+          
+          <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '6px', minWidth: 'auto', marginLeft: 'auto' }} title="Log out">
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
     </aside>
   );
