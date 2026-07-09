@@ -13,10 +13,10 @@ public class CalendarSyncScheduler {
         this.googleCalendarService = googleCalendarService;
     }
 
-    @Scheduled(fixedRate = 60000) // Run every 60 seconds for demo convenience
+    @Scheduled(fixedRate = 300000) // Run every 5 minutes (300000 ms)
     public void syncCalendarEvents() {
         // Sync calendar events from Google Calendar
-        // In demo mode, it falls back to creating beautiful demo calendar events if the repository is empty
-        googleCalendarService.syncGoogleCalendar(1L, null);
+        // In mock mode, it automatically populates demo events on first sync
+        googleCalendarService.syncGoogleCalendar(1L);
     }
 }

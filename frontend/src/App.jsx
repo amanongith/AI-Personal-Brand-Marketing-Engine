@@ -23,6 +23,14 @@ import {
   MessageSquare
 } from 'lucide-react';
 
+import Sidebar from './components/Sidebar';
+import AuthModal from './components/AuthModal';
+import DashboardTab from './components/DashboardTab';
+import ProfileTab from './components/ProfileTab';
+import GeneratorTab from './components/GeneratorTab';
+import CalendarTab from './components/CalendarTab';
+import AnalyticsTab from './components/AnalyticsTab';
+
 const DEFAULT_BACKEND_PORT = '8080';
 const DEFAULT_USER_ID = '1';
 
@@ -822,138 +830,57 @@ function App() {
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="brand-container">
-          <div className="brand-icon">
-            <Sparkles size={22} />
-          </div>
-          <span className="brand-name">BrandEngine.AI</span>
-        </div>
-
-        {token && (
-          <ul className="nav-menu">
-            <li>
-              <button 
-                className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
-              >
-                <LayoutDashboard size={18} />
-                Dashboard
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => setActiveTab('profile')}
-              >
-                <User size={18} />
-                Profile & Analysis
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`nav-item ${activeTab === 'generator' ? 'active' : ''}`}
-                onClick={() => setActiveTab('generator')}
-              >
-                <FileText size={18} />
-                AI Generator
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
-                onClick={() => setActiveTab('calendar')}
-              >
-                <Calendar size={18} />
-                Calendar & Schedule
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
-                onClick={() => setActiveTab('analytics')}
-              >
-                <BarChart3 size={18} />
-                Analytics
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('settings')}
-              >
-                <Settings size={18} />
-                Server Settings
-              </button>
-            </li>
-          </ul>
-        )}
-
-        <div className="sidebar-footer">
-          {token ? (
-            <div className="user-badge">
-              {userProfileImage ? (
-                <img src={userProfileImage} alt="Avatar" className="user-avatar" style={{ objectFit: 'cover' }} />
-              ) : (
-                <div className="user-avatar">
-                  {userFirstName.substring(0, 1).toUpperCase()}{userLastName.substring(0, 1).toUpperCase()}
-                </div>
-              )}
-              <div className="user-details">
-                <span className="user-name">{userFirstName} {userLastName}</span>
-                <span className="user-role">Creator Brand</span>
-              </div>
-              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '6px', minWidth: 'auto', marginLeft: 'auto' }} title="Log out">
-                <LogOut size={16} />
-              </button>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '10px 0' }}>
-              <span className="user-role" style={{ display: 'block', marginBottom: '8px' }}>Please Sign In</span>
-              <button onClick={() => { setAuthMode('login'); }} className="btn btn-secondary" style={{ width: '100%' }}>Login / Register</button>
-            </div>
-          )}
-        </div>
-      </aside>
+      {token && (
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          userFirstName={userFirstName} 
+          userLastName={userLastName} 
+          handleLogout={handleLogout} 
+          backendStatus={backendStatus} 
+        />
+      )}
 
       {/* Main Content Area */}
-      <main className="main-content">
+      <main className="main-content" style={{ marginLeft: !token ? '0' : 'var(--sidebar-width)' }}>
         
         {/* Connection Header */}
-        <header className="header-container">
-          <div>
-            <h1 className="header-title">
-              {activeTab === 'dashboard' && 'Creator Dashboard'}
-              {activeTab === 'profile' && 'Profile Intelligence'}
-              {activeTab === 'generator' && 'AI Content Engine'}
-              {activeTab === 'calendar' && 'Calendar Automation'}
-              {activeTab === 'analytics' && 'Growth Analytics'}
-              {activeTab === 'settings' && 'Connection Settings'}
-            </h1>
-            <p className="header-subtitle">
-              {activeTab === 'dashboard' && 'Overview of your personal brand metrics, notifications, and scheduled posts.'}
-              {activeTab === 'profile' && 'Analyze your niche, core values, and receive AI-driven branding recommendations.'}
-              {activeTab === 'generator' && 'Auto-generate platform-specific hooks, copy, and hashtags in seconds.'}
-              {activeTab === 'calendar' && 'Sync your events and meetings to automatically schedule social content.'}
-              {activeTab === 'analytics' && 'Track impressions, follower counts, and post engagement rates.'}
-              {activeTab === 'settings' && 'Configure local API port settings and manage database credentials.'}
-            </p>
-          </div>
+        {token && (
+          <header className="header-container">
+            <div>
+              <h1 className="header-title">
+                {activeTab === 'dashboard' && 'Creator Dashboard'}
+                {activeTab === 'profile' && 'Profile Intelligence'}
+                {activeTab === 'generator' && 'AI Content Engine'}
+                {activeTab === 'calendar' && 'Calendar Automation'}
+                {activeTab === 'analytics' && 'Growth Analytics'}
+                {activeTab === 'settings' && 'Connection Settings'}
+              </h1>
+              <p className="header-subtitle">
+                {activeTab === 'dashboard' && 'Overview of your personal brand metrics, notifications, and scheduled posts.'}
+                {activeTab === 'profile' && 'Analyze your niche, core values, and receive AI-driven branding recommendations.'}
+                {activeTab === 'generator' && 'Auto-generate platform-specific hooks, copy, and hashtags in seconds.'}
+                {activeTab === 'calendar' && 'Sync your events and meetings to automatically schedule social content.'}
+                {activeTab === 'analytics' && 'Track impressions, follower counts, and post engagement rates.'}
+                {activeTab === 'settings' && 'Configure local API port settings and manage database credentials.'}
+              </p>
+            </div>
 
-          <div className="flex-align-center">
-            {backendStatus === 'online' ? (
-              <span className="status-badge">
-                <CheckCircle2 size={14} />
-                Online (Port {backendPort})
-              </span>
-            ) : (
-              <span className="status-badge offline">
-                <AlertCircle size={14} />
-                Demo Mode (Offline)
-              </span>
-            )}
-          </div>
-        </header>
+            <div className="flex-align-center">
+              {backendStatus === 'online' ? (
+                <span className="status-badge">
+                  <CheckCircle2 size={14} />
+                  Online (Port {backendPort})
+                </span>
+              ) : (
+                <span className="status-badge offline">
+                  <AlertCircle size={14} />
+                  Demo Mode (Offline)
+                </span>
+              )}
+            </div>
+          </header>
+        )}
 
         {/* Real-time Alerts */}
         {notifications.length > 0 && (
@@ -987,1047 +914,118 @@ function App() {
         )}
 
         {/* Authentication Flow / Guest Screen */}
-        {!token && (
-          <div style={{ maxWidth: '480px', margin: '60px auto 0' }} className="card accent">
-            <h2 style={{ textAlign: 'center', marginBottom: '8px' }}>Personal Brand Marketing Engine</h2>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-              Create posts, analyze niches, and schedule events with agentic workflows.
-            </p>
-
-            {authError && (
-              <div style={{ backgroundColor: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)', padding: '12px', borderRadius: '8px', color: '#f43f5e', fontSize: '13px', display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <AlertCircle size={16} style={{ flexShrink: 0 }} />
-                <span>{authError}</span>
-              </div>
-            )}
-            
-            {authSuccess && (
-              <div style={{ backgroundColor: 'rgba(20, 184, 166, 0.1)', border: '1px solid rgba(20, 184, 166, 0.3)', padding: '12px', borderRadius: '8px', color: 'var(--accent-teal)', fontSize: '13px', display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
-                <span>{authSuccess}</span>
-              </div>
-            )}
-
-            {authMode === 'login' ? (
-              <form onSubmit={handleLogin}>
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required />
-                </div>
-                <div className="form-group">
-                  <label>Password</label>
-                  <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginBottom: '16px' }}>
-                  Sign In
-                </button>
-                <div style={{ textAlign: 'center', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Don't have an account? </span>
-                  <button type="button" onClick={() => setAuthMode('register')} style={{ background: 'none', border: 'none', color: 'var(--accent-purple)', cursor: 'pointer', fontWeight: 600 }}>Register</button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleRegister}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label>First Name</label>
-                    <input type="text" value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Last Name</label>
-                    <input type="text" value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} required />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required />
-                </div>
-                <div className="form-group">
-                  <label>Password</label>
-                  <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginBottom: '16px' }}>
-                  Register Account
-                </button>
-                <div style={{ textAlign: 'center', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Already have an account? </span>
-                  <button type="button" onClick={() => setAuthMode('login')} style={{ background: 'none', border: 'none', color: 'var(--accent-purple)', cursor: 'pointer', fontWeight: 600 }}>Login</button>
-                </div>
-              </form>
-            )}
-
-            <div style={{ borderTop: '1px solid var(--border-color)', margin: '24px 0 16px', paddingTop: '16px', textAlign: 'center' }}>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>Want to try out the interface without running the backend?</p>
-              <button onClick={handleEnterDemo} className="btn btn-secondary" style={{ width: '100%' }}>
-                Enter Demo / Offline Mode
-              </button>
-            </div>
-          </div>
-        )}
+        <AuthModal
+          token={token}
+          authError={authError}
+          authSuccess={authSuccess}
+          authMode={authMode}
+          setAuthMode={setAuthMode}
+          authEmail={authEmail}
+          setAuthEmail={setAuthEmail}
+          authPassword={authPassword}
+          setAuthPassword={setAuthPassword}
+          authFirstName={authFirstName}
+          setAuthFirstName={setAuthFirstName}
+          authLastName={authLastName}
+          setAuthLastName={setAuthLastName}
+          handleLogin={handleLogin}
+          handleRegister={handleRegister}
+          handleEnterDemo={handleEnterDemo}
+        />
 
         {/* Tab 1: Dashboard */}
         {token && activeTab === 'dashboard' && (
-          <div>
-            {/* Stats Metrics */}
-            <div className="stats-grid">
-              <div className="card accent">
-                <div className="card-header">
-                  <span>Audience Reach</span>
-                  <div className="card-icon blue"><TrendingUp size={16} /></div>
-                </div>
-                <div className="card-value">{(dashboardData?.followers ?? 0).toLocaleString()}</div>
-                <div className="card-change up">
-                  <span>+12.4% this month</span>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <span>Engagement Rate</span>
-                  <div className="card-icon teal"><ThumbsUp size={16} /></div>
-                </div>
-                <div className="card-value">{dashboardData?.engagementRate ?? 0}%</div>
-                <div className="card-change up">
-                  <span>+0.8% vs last week</span>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <span>Total Engagement</span>
-                  <div className="card-icon purple"><Share2 size={16} /></div>
-                </div>
-                <div className="card-value">{(dashboardData?.totalEngagement ?? 0).toLocaleString()}</div>
-                <div className="card-change up">
-                  <span>+342 engagements</span>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <span>Brand Equity Score</span>
-                  <div className="card-icon purple"><Sparkles size={16} /></div>
-                </div>
-                <div className="card-value">{dashboardData?.brandScore ?? 0}/100</div>
-                <div className="card-change up">
-                  <span>Elite Authority Tier</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Middle Grid */}
-            <div className="dashboard-content-grid">
-              {/* Left Side: Content Queue */}
-              <div className="card">
-                <div className="flex-between margin-b-24">
-                  <h3>Interactive Content Queue</h3>
-                  <button onClick={() => setActiveTab('generator')} className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }}>
-                    <Plus size={14} />
-                    Generate Content
-                  </button>
-                </div>
-
-                <div className="list-container">
-                  {Array.isArray(contentsList) && contentsList.length > 0 ? (
-                    contentsList.map(item => (
-                      <div className="list-item" key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', alignItems: 'stretch' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div className="item-info" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <span className={`platform-badge ${item.platform?.toLowerCase() || 'linkedin'}`} style={{ margin: 0, minWidth: '85px', textAlign: 'center' }}>
-                              {item.platform || 'LINKEDIN'}
-                            </span>
-                            <div>
-                              <span className="item-title" style={{ fontWeight: 600, fontSize: '14px' }}>{item.title}</span>
-                              <div className="item-meta" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                {item.status === 'PUBLISHED' && `Published • ${new Date(item.publishedTime).toLocaleString()}`}
-                                {item.status === 'SCHEDULED' && `Scheduled • ${new Date(item.scheduledTime).toLocaleString()}`}
-                                {item.status === 'DRAFT' && 'Draft • Ready to publish'}
-                              </div>
-                            </div>
-                          </div>
-                          <span className={`item-status ${item.status?.toLowerCase() || 'draft'}`}>
-                            {item.status || 'DRAFT'}
-                          </span>
-                        </div>
-
-                        {item.body && (
-                          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', backgroundColor: 'rgba(255,255,255,0.01)', padding: '10px 14px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)', whiteSpace: 'pre-wrap', maxHeight: '100px', overflowY: 'auto' }}>
-                            {item.body}
-                          </div>
-                        )}
-
-                        {schedulingItemId === item.id && (
-                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', marginTop: '4px' }}>
-                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Choose Time:</span>
-                            <input 
-                              type="datetime-local" 
-                              value={scheduledTimeInput} 
-                              onChange={(e) => setScheduledTimeInput(e.target.value)} 
-                              style={{ padding: '6px 10px', fontSize: '12px', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-primary)' }}
-                            />
-                            <button 
-                              onClick={() => {
-                                if (scheduledTimeInput) {
-                                  handleSchedulePost(item.id, scheduledTimeInput);
-                                  setSchedulingItemId(null);
-                                  setScheduledTimeInput('');
-                                }
-                              }} 
-                              className="btn btn-primary" 
-                              style={{ padding: '6px 12px', fontSize: '11px' }}
-                            >
-                              Confirm
-                            </button>
-                            <button 
-                              onClick={() => {
-                                setSchedulingItemId(null);
-                                setScheduledTimeInput('');
-                              }} 
-                              className="btn btn-secondary" 
-                              style={{ padding: '6px 12px', fontSize: '11px', background: 'transparent' }}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
-
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '8px' }}>
-                          {item.status === 'DRAFT' && schedulingItemId !== item.id && (
-                            <>
-                              <button 
-                                onClick={() => handlePublishImmediate(item.id)} 
-                                className="btn btn-primary" 
-                                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                              >
-                                Publish Now
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  setSchedulingItemId(item.id);
-                                  setScheduledTimeInput('');
-                                }} 
-                                className="btn btn-secondary" 
-                                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                              >
-                                Schedule
-                              </button>
-                              <button 
-                                onClick={() => handleDeleteContent(item.id)} 
-                                className="btn btn-secondary" 
-                                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#ef4444', backgroundColor: 'transparent' }}
-                              >
-                                Delete
-                              </button>
-                            </>
-                          )}
-
-                          {item.status === 'SCHEDULED' && (
-                            <>
-                              <button 
-                                onClick={() => handlePublishImmediate(item.id)} 
-                                className="btn btn-primary" 
-                                style={{ padding: '6px 12px', fontSize: '12px' }}
-                              >
-                                Publish Now
-                              </button>
-                              <button 
-                                onClick={() => handleRevertToDraft(item.id)} 
-                                className="btn btn-secondary" 
-                                style={{ padding: '6px 12px', fontSize: '12px' }}
-                              >
-                                Revert to Draft
-                              </button>
-                              <button 
-                                onClick={() => handleDeleteContent(item.id)} 
-                                className="btn btn-secondary" 
-                                style={{ padding: '6px 12px', fontSize: '12px', color: '#ef4444', backgroundColor: 'transparent' }}
-                              >
-                                Cancel Post
-                              </button>
-                            </>
-                          )}
-
-                          {item.status === 'PUBLISHED' && (
-                            <button 
-                              onClick={() => handleDeleteContent(item.id)} 
-                              className="btn btn-secondary" 
-                              style={{ padding: '6px 12px', fontSize: '12px', color: '#ef4444', backgroundColor: 'transparent' }}
-                            >
-                              Delete from Log
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <>
-                      <div className="list-item">
-                        <div className="item-info">
-                          <span className="platform-badge linkedin">LinkedIn</span>
-                          <div>
-                            <span className="item-title">Standard RAG vs Agentic Loops in Enterprise</span>
-                            <div className="item-meta">Scheduled &bull; July 8 at 9:00 AM</div>
-                          </div>
-                        </div>
-                        <span className="item-status scheduled">SCHEDULED</span>
-                      </div>
-                      <div className="list-item">
-                        <div className="item-info">
-                          <span className="platform-badge twitter">Twitter</span>
-                          <div>
-                            <span className="item-title">5 Developer tools to automate your coding in 2026</span>
-                            <div className="item-meta">Draft &bull; Needs review</div>
-                          </div>
-                        </div>
-                        <span className="item-status draft">DRAFT</span>
-                      </div>
-                      <div className="list-item">
-                        <div className="item-info">
-                          <span className="platform-badge linkedin">LinkedIn</span>
-                          <div>
-                            <span className="item-title">Meeting with Startup founder lessons: bootstrap or seed?</span>
-                            <div className="item-meta">Published &bull; July 5 at 3:12 PM</div>
-                          </div>
-                        </div>
-                        <span className="item-status published">PUBLISHED</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Side: Smart AI Notifications */}
-              <div className="card">
-                <div className="flex-align-center margin-b-16">
-                  <Sparkles size={18} className="text-muted" style={{ color: 'var(--accent-purple)' }} />
-                  <h3>Agentic Reminders</h3>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ backgroundColor: 'rgba(168, 85, 247, 0.05)', borderLeft: '3px solid var(--accent-purple)', padding: '12px', borderRadius: '4px' }}>
-                    <span className="font-12" style={{ fontWeight: 600, color: 'var(--accent-purple)', display: 'block', marginBottom: '4px' }}>CALENDAR INTELLIGENCE</span>
-                    <span className="font-14" style={{ display: 'block', marginBottom: '8px' }}>
-                      You have a <strong>Founder Sync Meeting</strong> scheduled on July 9. 
-                    </span>
-                    <button 
-                      onClick={() => {
-                        setActiveTab('generator');
-                        setGenTopic('Lessons from a sync meeting with a tech startup founder about SaaS metrics.');
-                        setGenPlatform('linkedin');
-                      }}
-                      className="btn btn-secondary" 
-                      style={{ padding: '6px 12px', fontSize: '11px' }}
-                    >
-                      Draft LinkedIn Post
-                    </button>
-                  </div>
-
-                  <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.05)', borderLeft: '3px solid var(--accent-blue)', padding: '12px', borderRadius: '4px' }}>
-                    <span className="font-12" style={{ fontWeight: 600, color: 'var(--accent-blue)', display: 'block', marginBottom: '4px' }}>ENGAGEMENT ALERTS</span>
-                    <span className="font-14" style={{ color: 'var(--text-secondary)' }}>
-                      Your post on <strong>RAG Architecture</strong> generated 34% more impressions than average. We suggest making a Twitter/X thread next!
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DashboardTab
+            dashboardData={dashboardData}
+            contentsList={contentsList}
+            setActiveTab={setActiveTab}
+            setGenTopic={setGenTopic}
+            setGenPlatform={setGenPlatform}
+            schedulingItemId={schedulingItemId}
+            setSchedulingItemId={setSchedulingItemId}
+            scheduledTimeInput={scheduledTimeInput}
+            setScheduledTimeInput={setScheduledTimeInput}
+            handlePublishImmediate={handlePublishImmediate}
+            handleSchedulePost={handleSchedulePost}
+            handleDeleteContent={handleDeleteContent}
+            handleRevertToDraft={handleRevertToDraft}
+          />
         )}
 
         {/* Tab 2: Profile & AI Analysis */}
         {token && activeTab === 'profile' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
-            {/* Column 1: Account Settings & Branding Metadata */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Account Settings Card */}
-              <div className="card">
-                <h3 className="margin-b-24">User Account Profile</h3>
-                <form onSubmit={handleSaveAccountSettings}>
-                  {/* Profile Picture Preview Area */}
-                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '24px', padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
-                    <div style={{ position: 'relative' }}>
-                      {userProfileImage ? (
-                        <img 
-                          src={userProfileImage} 
-                          alt="Profile Preview" 
-                          style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent-purple)', boxShadow: '0 0 15px rgba(168, 85, 247, 0.2)' }} 
-                        />
-                      ) : (
-                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)', border: '2px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
-                          {userFirstName.substring(0, 1).toUpperCase()}{userLastName.substring(0, 1).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>{userFirstName} {userLastName}</h4>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>Profile Photo Preview</p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-group">
-                      <label>First Name</label>
-                      <input type="text" value={userFirstName} onChange={(e) => setUserFirstName(e.target.value)} required />
-                    </div>
-                    <div className="form-group">
-                      <label>Last Name</label>
-                      <input type="text" value={userLastName} onChange={(e) => setUserLastName(e.target.value)} required />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Profile Image</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '16px', alignItems: 'center' }}>
-                      <div>
-                        <span className="font-12 text-muted" style={{ display: 'block', marginBottom: '6px' }}>Upload Local File</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setUserProfileImage(reader.result);
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                          style={{ fontSize: '12px', padding: '6px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', width: '100%', cursor: 'pointer' }}
-                        />
-                      </div>
-                      <div>
-                        <span className="font-12 text-muted" style={{ display: 'block', marginBottom: '6px' }}>Or Paste Image URL</span>
-                        <input 
-                          type="text" 
-                          value={userProfileImage.startsWith('data:') ? 'Local file uploaded' : userProfileImage} 
-                          onChange={(e) => setUserProfileImage(e.target.value)} 
-                          placeholder="e.g. https://images.unsplash.com/..." 
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Account Email</label>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <input type="email" value={userEmail} readOnly style={{ opacity: 0.7, cursor: 'not-allowed' }} />
-                      {emailVerified ? (
-                        <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-teal)', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                          <CheckCircle2 size={14} /> Verified
-                        </span>
-                      ) : (
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <span style={{ backgroundColor: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>
-                            Unverified
-                          </span>
-                          <button 
-                            type="button" 
-                            onClick={handleVerifyEmail} 
-                            disabled={verificationStatus === 'verifying'} 
-                            className="btn btn-secondary" 
-                            style={{ padding: '6px 12px', fontSize: '12px' }}
-                          >
-                            {verificationStatus === 'verifying' && <div className="loading-spinner" />}
-                            Verify
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    {verificationStatus === 'success' && <p className="font-12" style={{ color: 'var(--accent-teal)', marginTop: '4px' }}>Email verified successfully!</p>}
-                    {verificationStatus === 'error' && <p className="font-12" style={{ color: '#f43f5e', marginTop: '4px' }}>Verification failed.</p>}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '12px' }}>
-                    <button type="submit" className="btn btn-primary" disabled={accountStatus === 'saving'}>
-                      {accountStatus === 'saving' && <div className="loading-spinner" />}
-                      Save Account Settings
-                    </button>
-                    {accountStatus === 'success' && <span className="font-14" style={{ color: 'var(--accent-teal)' }}>Account settings updated!</span>}
-                    {accountStatus === 'error' && <span className="font-14" style={{ color: '#f43f5e' }}>Failed to update account.</span>}
-                  </div>
-                </form>
-              </div>
-
-              {/* Profile Branding Card */}
-              <div className="card">
-                <h3 className="margin-b-24">Profile Branding Metadata</h3>
-                <form onSubmit={handleSaveProfile}>
-                  <div className="form-group">
-                    <label>Professional Bio</label>
-                    <textarea value={profileForm.bio} onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })} required />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="form-group">
-                      <label>Industry</label>
-                      <input type="text" value={profileForm.industry} onChange={(e) => setProfileForm({ ...profileForm, industry: e.target.value })} required />
-                    </div>
-                    <div className="form-group">
-                      <label>Target Niche</label>
-                      <input type="text" value={profileForm.niche} onChange={(e) => setProfileForm({ ...profileForm, niche: e.target.value })} required />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                    <div className="form-group">
-                      <label>Location</label>
-                      <input type="text" value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} />
-                    </div>
-                    <div className="form-group">
-                      <label>Website</label>
-                      <input type="text" value={profileForm.website} onChange={(e) => setProfileForm({ ...profileForm, website: e.target.value })} />
-                    </div>
-                    <div className="form-group">
-                      <label>Experience (Years)</label>
-                      <input type="number" value={profileForm.experienceYears} onChange={(e) => setProfileForm({ ...profileForm, experienceYears: parseInt(e.target.value) || 0 })} />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Personal Brand Statement</label>
-                    <textarea value={profileForm.personalBrandStatement} onChange={(e) => setProfileForm({ ...profileForm, personalBrandStatement: e.target.value })} />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Target Audience</label>
-                    <input type="text" value={profileForm.targetAudience} onChange={(e) => setProfileForm({ ...profileForm, targetAudience: e.target.value })} />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '12px' }}>
-                    <button type="submit" className="btn btn-primary" disabled={profileStatus === 'saving'}>
-                      {profileStatus === 'saving' && <div className="loading-spinner" />}
-                      Save Branding Details
-                    </button>
-                    {profileStatus === 'success' && <span className="font-14" style={{ color: 'var(--accent-teal)' }}>Details saved successfully!</span>}
-                  </div>
-                </form>
-              </div>
-
-              {/* Connected Social Accounts Card */}
-              <div className="card" style={{ marginTop: '24px' }}>
-                <h3 className="margin-b-16">Connected Social Accounts</h3>
-                <p className="font-12 text-muted margin-b-24">
-                  Connect your profiles to publish posts directly and view live analytics.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {/* LinkedIn */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div className="platform-badge linkedin" style={{ margin: 0, padding: '6px 12px', minWidth: '80px', textAlign: 'center' }}>LinkedIn</div>
-                      {connectedAccounts.some(acc => acc.platform === 'LINKEDIN') ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {connectedAccounts.find(acc => acc.platform === 'LINKEDIN').profileImageUrl && (
-                            <img src={connectedAccounts.find(acc => acc.platform === 'LINKEDIN').profileImageUrl} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                          )}
-                          <div>
-                            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                              {connectedAccounts.find(acc => acc.platform === 'LINKEDIN').username}
-                            </div>
-                            <span style={{ fontSize: '11px', color: 'var(--accent-teal)' }}>Connected</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Not connected</span>
-                      )}
-                    </div>
-                    {connectedAccounts.some(acc => acc.platform === 'LINKEDIN') ? (
-                      <button 
-                        onClick={() => handleDisconnectSocial('linkedin')} 
-                        className="btn btn-secondary" 
-                        style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
-                      >
-                        Disconnect
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => handleConnectSocial('linkedin')} 
-                        className="btn btn-primary" 
-                        style={{ padding: '6px 12px', fontSize: '12px' }}
-                      >
-                        Connect
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Twitter */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div className="platform-badge twitter" style={{ margin: 0, padding: '6px 12px', minWidth: '80px', textAlign: 'center' }}>Twitter/X</div>
-                      {connectedAccounts.some(acc => acc.platform === 'TWITTER') ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {connectedAccounts.find(acc => acc.platform === 'TWITTER').profileImageUrl && (
-                            <img src={connectedAccounts.find(acc => acc.platform === 'TWITTER').profileImageUrl} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                          )}
-                          <div>
-                            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                              {connectedAccounts.find(acc => acc.platform === 'TWITTER').username}
-                            </div>
-                            <span style={{ fontSize: '11px', color: 'var(--accent-teal)' }}>Connected</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Not connected</span>
-                      )}
-                    </div>
-                    {connectedAccounts.some(acc => acc.platform === 'TWITTER') ? (
-                      <button 
-                        onClick={() => handleDisconnectSocial('twitter')} 
-                        className="btn btn-secondary" 
-                        style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
-                      >
-                        Disconnect
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => handleConnectSocial('twitter')} 
-                        className="btn btn-primary" 
-                        style={{ padding: '6px 12px', fontSize: '12px' }}
-                      >
-                        Connect
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Analysis */}
-            <div className="card">
-              <div className="flex-between margin-b-24">
-                <h3>AI Profile Analysis</h3>
-                <button 
-                  onClick={handleRunAnalysis} 
-                  disabled={analyzingProfile} 
-                  className="btn btn-secondary" 
-                  style={{ padding: '8px 16px', fontSize: '13px' }}
-                >
-                  {analyzingProfile ? <div className="loading-spinner" /> : <RefreshCw size={14} />}
-                  Analyze Profile
-                </button>
-              </div>
-
-              {aiAnalysis ? (
-                <div style={{ display: 'flex', flexType: 'column', flexDirection: 'column', gap: '16px' }}>
-                  <div className="analysis-score-container">
-                    <div className="circular-progress-glow" style={{ '--pct': '300deg' }}>
-                      <span className="progress-value">84%</span>
-                    </div>
-                    <div>
-                      <h4 style={{ marginBottom: '4px' }}>Brand Score Profile</h4>
-                      <p className="font-12 text-muted">Analysis of niche depth, target audience alignment, and consistency indexes.</p>
-                    </div>
-                  </div>
-
-                  <h4 className="margin-b-16">Branding Recommendations</h4>
-                  {Array.isArray(aiAnalysis) ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {aiAnalysis.map((rec, index) => (
-                        <div key={index} style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px' }}>
-                          <div className="flex-between" style={{ marginBottom: '6px' }}>
-                            <span style={{ fontWeight: 600, fontSize: '14px' }}>{rec.title}</span>
-                            <span className={`item-status ${rec.priority === 'HIGH' ? 'draft' : 'scheduled'}`}>{rec.priority}</span>
-                          </div>
-                          <p className="font-12 text-secondary">{rec.reason}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="ai-output-text" style={{ minHeight: 'auto', whiteSpace: 'pre-wrap' }}>
-                      {typeof aiAnalysis === 'string' ? aiAnalysis : JSON.stringify(aiAnalysis, null, 2)}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '40px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                  <div className="card-icon purple" style={{ width: '48px', height: '48px', borderRadius: '50%' }}>
-                    <Sparkles size={24} />
-                  </div>
-                  <div>
-                    <h4 style={{ marginBottom: '4px' }}>No Profile Analysis Available</h4>
-                    <p className="font-12 text-muted" style={{ maxWidth: '280px', margin: '0 auto' }}>
-                      Click the "Analyze Profile" button above to run the Profile Analysis Agent workflow and generate recommendations.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <ProfileTab
+            userFirstName={userFirstName}
+            setUserFirstName={setUserFirstName}
+            userLastName={userLastName}
+            setUserLastName={setUserLastName}
+            userProfileImage={userProfileImage}
+            setUserProfileImage={setUserProfileImage}
+            userEmail={userEmail}
+            emailVerified={emailVerified}
+            verificationStatus={verificationStatus}
+            accountStatus={accountStatus}
+            handleSaveAccountSettings={handleSaveAccountSettings}
+            handleVerifyEmail={handleVerifyEmail}
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+            profileStatus={profileStatus}
+            handleSaveProfile={handleSaveProfile}
+            connectedAccounts={connectedAccounts}
+            handleDisconnectSocial={handleDisconnectSocial}
+            handleConnectSocial={handleConnectSocial}
+            handleRunAnalysis={handleRunAnalysis}
+            analyzingProfile={analyzingProfile}
+            aiAnalysis={aiAnalysis}
+          />
         )}
 
         {/* Tab 3: AI Content Generator */}
         {token && activeTab === 'generator' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px' }}>
-            {/* Input Config Card */}
-            <div className="card">
-              <h3 className="margin-b-24">Generation Options</h3>
-              <form onSubmit={handleGenerateContent}>
-                <div className="form-group">
-                  <label>Target Platform</label>
-                  <select value={genPlatform} onChange={(e) => setGenPlatform(e.target.value)}>
-                    <option value="linkedin">LinkedIn</option>
-                    <option value="twitter">Twitter / X</option>
-                    <option value="instagram">Instagram Caption</option>
-                    <option value="youtube">YouTube Description</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div className="form-group">
-                    <label>Tone of Voice</label>
-                    <select value={genTone} onChange={(e) => setGenTone(e.target.value)}>
-                      <option value="professional">Professional</option>
-                      <option value="conversational">Conversational</option>
-                      <option value="inspirational">Inspirational</option>
-                      <option value="educational">Educational</option>
-                      <option value="direct">Direct</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Content Template</label>
-                    <select value={genContentType} onChange={(e) => setGenContentType(e.target.value)}>
-                      <option value="educational">Educational / Core Topic</option>
-                      <option value="personal_story">Personal Story</option>
-                      <option value="industry_update">Industry Update</option>
-                      <option value="promotion">Promo / Launch</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Content Topic</label>
-                  <textarea 
-                    value={genTopic} 
-                    onChange={(e) => setGenTopic(e.target.value)} 
-                    placeholder="Enter what you want the post to be about..." 
-                    required 
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Additional Instructions (Optional)</label>
-                  <input 
-                    type="text" 
-                    value={genInstructions} 
-                    onChange={(e) => setGenInstructions(e.target.value)}
-                    placeholder="e.g. Include bullet points, keep it short..."
-                  />
-                </div>
-
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '12px' }} disabled={generatingContent}>
-                  {generatingContent ? (
-                    <>
-                      <div className="loading-spinner" />
-                      Generating Content...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} />
-                      Generate Content Draft
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-
-            {/* Generated Output Card */}
-            <div className="card ai-output-card">
-              <div className="flex-between margin-b-24">
-                <h3>Draft Output</h3>
-                {generatedOutput && (
-                  <button 
-                    onClick={handleSaveDraft} 
-                    disabled={contentStatus === 'saving'}
-                    className="btn btn-secondary" 
-                    style={{ padding: '8px 16px', fontSize: '13px' }}
-                  >
-                    {contentStatus === 'saving' ? <div className="loading-spinner" /> : <Send size={14} />}
-                    Save to Queue
-                  </button>
-                )}
-              </div>
-
-              {generatedOutput ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="ai-output-text" style={{ whiteSpace: 'pre-wrap' }}>
-                    {typeof generatedOutput === 'string' ? generatedOutput : JSON.stringify(generatedOutput, null, 2)}
-                  </div>
-                  {contentStatus === 'success' && (
-                    <span className="font-14" style={{ color: 'var(--accent-teal)', textAlign: 'right' }}>
-                      Draft saved to content list successfully!
-                    </span>
-                  )}
-                  {contentStatus === 'error' && (
-                    <span className="font-14" style={{ color: '#f43f5e', textAlign: 'right' }}>
-                      Failed to save draft to database.
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '80px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                  <div className="card-icon teal" style={{ width: '48px', height: '48px', borderRadius: '50%' }}>
-                    <FileText size={24} />
-                  </div>
-                  <div>
-                    <h4 style={{ marginBottom: '4px' }}>No Draft Generated Yet</h4>
-                    <p className="font-12 text-muted" style={{ maxWidth: '300px', margin: '0 auto' }}>
-                      Fill in the generation options on the left and click "Generate" to generate a tailored multi-platform post draft.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <GeneratorTab
+            genPlatform={genPlatform}
+            setGenPlatform={setGenPlatform}
+            genTone={genTone}
+            setGenTone={setGenTone}
+            genContentType={genContentType}
+            setGenContentType={setGenContentType}
+            genTopic={genTopic}
+            setGenTopic={setGenTopic}
+            genInstructions={genInstructions}
+            setGenInstructions={setGenInstructions}
+            generatingContent={generatingContent}
+            handleGenerateContent={handleGenerateContent}
+            generatedOutput={generatedOutput}
+            handleSaveDraft={handleSaveDraft}
+            contentStatus={contentStatus}
+          />
         )}
 
         {/* Tab 4: Calendar & Events */}
         {token && activeTab === 'calendar' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px' }}>
-            {/* Calendar Grid View */}
-            <div className="card">
-              <div className="flex-between margin-b-24">
-                <h3>Event Calendar - July 2026</h3>
-                <span className="font-14 text-muted">Weekly Sync Enabled</span>
-              </div>
-
-              <div className="calendar-grid">
-                {/* Header Days */}
-                <div className="calendar-header-day">Mon</div>
-                <div className="calendar-header-day">Tue</div>
-                <div className="calendar-header-day">Wed</div>
-                <div className="calendar-header-day">Thu</div>
-                <div className="calendar-header-day">Fri</div>
-                <div className="calendar-header-day">Sat</div>
-                <div className="calendar-header-day">Sun</div>
-
-                {/* Day Cells (Mocks for July 6th - July 12th) */}
-                {[
-                  { date: 6, active: true, events: [] },
-                  { date: 7, active: true, today: true, events: [] },
-                  { date: 8, active: true, events: [Array.isArray(calendarEvents) ? calendarEvents.find(e => e.id === 1) : null].filter(Boolean) },
-                  { date: 9, active: true, events: [Array.isArray(calendarEvents) ? calendarEvents.find(e => e.id === 2) : null].filter(Boolean) },
-                  { date: 10, active: true, events: [Array.isArray(calendarEvents) ? calendarEvents.find(e => e.id === 3) : null].filter(Boolean) },
-                  { date: 11, active: true, events: [] },
-                  { date: 12, active: true, events: [Array.isArray(calendarEvents) ? calendarEvents.find(e => e.id === 4) : null].filter(Boolean) }
-                ].map((cell, idx) => (
-                  <div key={idx} className={`calendar-day-cell ${cell.active ? 'active-month' : ''} ${cell.today ? 'today' : ''}`}>
-                    <span className="calendar-day-number">{cell.date}</span>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {cell.events.map(ev => (
-                        <div 
-                          key={ev.id} 
-                          className={`calendar-event-item ${ev.eventType?.toLowerCase() || 'content_posting'}`}
-                          title={`${ev.title}\nClick to draft a post inspired by this event.`}
-                          onClick={() => handleEventClick(ev)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          {ev.title}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="font-12 text-muted" style={{ marginTop: '16px' }}>
-                💡 <strong>Agentic Tip:</strong> Click on any scheduled calendar event box (like the sync meeting or webinar) to automatically generate ideas and draft social content inspired by it.
-              </p>
-            </div>
-
-            {/* Add Event Form */}
-            <div className="card">
-              <h3 className="margin-b-24">Add Event / Activity</h3>
-              <form onSubmit={handleAddEvent}>
-                <div className="form-group">
-                  <label>Event Title</label>
-                  <input 
-                    type="text" 
-                    value={newEvent.title} 
-                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} 
-                    placeholder="e.g. Sync meeting with founder" 
-                    required 
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Description / Context</label>
-                  <textarea 
-                    value={newEvent.description} 
-                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} 
-                    placeholder="Provide details about the meeting or event..." 
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label>Start Date & Time</label>
-                    <input 
-                      type="datetime-local" 
-                      value={newEvent.startTime} 
-                      onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })} 
-                      required 
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>End Date & Time</label>
-                    <input 
-                      type="datetime-local" 
-                      value={newEvent.endTime} 
-                      onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })} 
-                      required 
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label>Event Type</label>
-                    <select value={newEvent.eventType} onChange={(e) => setNewEvent({ ...newEvent, eventType: e.target.value })}>
-                      <option value="CONTENT_POSTING">Content Posting</option>
-                      <option value="MEETING">Meeting</option>
-                      <option value="ANALYTICS_REVIEW">Analytics Review</option>
-                      <option value="MEETING">Webinar/Event</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Target Platform</label>
-                    <select value={newEvent.platform} onChange={(e) => setNewEvent({ ...newEvent, platform: e.target.value })}>
-                      <option value="LINKEDIN">LinkedIn</option>
-                      <option value="TWITTER">Twitter/X</option>
-                      <option value="INSTAGRAM">Instagram</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '12px' }}>
-                  <button type="submit" className="btn btn-primary" disabled={eventStatus === 'saving'}>
-                    {eventStatus === 'saving' && <div className="loading-spinner" />}
-                    Add Event
-                  </button>
-                  {eventStatus === 'success' && <span className="font-14" style={{ color: 'var(--accent-teal)' }}>Event added!</span>}
-                </div>
-              </form>
-            </div>
-          </div>
+          <CalendarTab
+            calendarEvents={calendarEvents}
+            handleEventClick={handleEventClick}
+            newEvent={newEvent}
+            setNewEvent={setNewEvent}
+            handleAddEvent={handleAddEvent}
+            eventStatus={eventStatus}
+          />
         )}
 
-        {/* Tab 5: Analytics */}
-        {token && activeTab === 'analytics' && (
-          <div>
-            <div className="stats-grid">
-              <div className="card">
-                <div className="card-header">
-                  <span>LinkedIn Followers</span>
-                  <span className="platform-badge linkedin">LinkedIn</span>
-                </div>
-                <div className="card-value">1,850</div>
-                <p className="font-12 text-muted">Impression Count: 12,400 &bull; Engagement: 810</p>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <span>Twitter Followers</span>
-                  <span className="platform-badge twitter">Twitter</span>
-                </div>
-                <div className="card-value">600</div>
-                <p className="font-12 text-muted">Impression Count: 5,600 &bull; Engagement: 210</p>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <span>Total Impressions</span>
-                  <div className="card-icon blue"><Eye size={16} /></div>
-                </div>
-                <div className="card-value">18,000</div>
-                <p className="font-12 text-muted">Across all channels</p>
-              </div>
-            </div>
-
-            <div className="card">
-              <h3 className="margin-b-24">Platform Comparison Metrics</h3>
-              <div className="list-container">
-                {analyticsList.map((anal, index) => (
-                  <div className="list-item" key={index}>
-                    <div className="item-info">
-                      <span className={`platform-badge ${anal.platform}`}>
-                        {anal.platform}
-                      </span>
-                      <div>
-                        <span className="item-title" style={{ fontWeight: 600 }}>{anal.followers.toLocaleString()} Followers</span>
-                        <div className="item-meta">
-                          Impressions: {anal.impressions.toLocaleString()} &bull; Clicks: {anal.clicks} &bull; Engagement Rate: {anal.engagementRate}%
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <span className="font-14" style={{ fontWeight: 600, color: 'var(--accent-purple)', display: 'block' }}>
-                        Score: {anal.brandScore}/100
-                      </span>
-                      <span className="font-12 text-muted">Authority Tier</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 6: Server Settings */}
-        {token && activeTab === 'settings' && (
-          <div style={{ maxWidth: '540px' }} className="card">
-            <h3 className="margin-b-24">Local API Configuration</h3>
-            
-            <div className="form-group">
-              <label>Backend API Port</label>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input 
-                  type="text" 
-                  value={backendPort} 
-                  onChange={(e) => setBackendPort(e.target.value)} 
-                  placeholder="e.g. 8080"
-                />
-                <button 
-                  onClick={() => {
-                    localStorage.setItem('backend_port', backendPort);
-                    checkConnection();
-                  }}
-                  className="btn btn-primary"
-                  style={{ flexShrink: 0 }}
-                >
-                  Save & Reconnect
-                </button>
-              </div>
-              <p className="font-12 text-muted" style={{ marginTop: '4px' }}>
-                Specify the port your Spring Boot backend is running on (typically 8080 or 8085).
-              </p>
-            </div>
-
-            <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '24px', paddingTop: '24px' }}>
-              <h4 className="margin-b-16">Connection Status Details</h4>
-              <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
-                <tbody>
-                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>Status</td>
-                    <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: 600, color: backendStatus === 'online' ? 'var(--accent-teal)' : '#f43f5e' }}>
-                      {backendStatus === 'online' ? 'CONNECTED' : 'DISCONNECTED (MOCK / DEMO MODE)'}
-                    </td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>Endpoint URL</td>
-                    <td style={{ padding: '8px 0', textAlign: 'right', fontFamily: 'var(--mono-font)' }}>{baseUrl}</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>Auth Token</td>
-                    <td style={{ padding: '8px 0', textAlign: 'right', fontFamily: 'var(--mono-font)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '240px' }}>
-                      {token ? `${token.substring(0, 16)}...` : 'None'}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: '8px 0', color: 'var(--text-secondary)' }}>Current User ID</td>
-                    <td style={{ padding: '8px 0', textAlign: 'right' }}>{userId}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {/* Tab 5 & 6: Analytics & Settings */}
+        {token && (activeTab === 'analytics' || activeTab === 'settings') && (
+          <AnalyticsTab
+            activeTab={activeTab}
+            analyticsList={analyticsList}
+            backendPort={backendPort}
+            setBackendPort={setBackendPort}
+            checkConnection={checkConnection}
+            backendStatus={backendStatus}
+            baseUrl={baseUrl}
+            token={token}
+            userId={userId}
+          />
         )}
 
       </main>

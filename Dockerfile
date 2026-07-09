@@ -22,4 +22,5 @@ WORKDIR /app
 COPY --from=backend-builder /app/target/personal-brand-engine-1.0.0.jar app.jar
 EXPOSE 7860
 ENV PORT=7860
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=dev"]
+ENV SPRING_PROFILES_ACTIVE=dev
+ENTRYPOINT ["java", "-jar", "app.jar"]

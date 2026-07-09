@@ -45,6 +45,12 @@ public class SocialMediaService {
     @Value("${social.twitter.client-secret:mock-twitter-secret}")
     private String twitterClientSecret;
 
+    @Value("${social.google.client-id:mock-google-id}")
+    private String googleClientId;
+
+    @Value("${social.google.client-secret:mock-google-secret}")
+    private String googleClientSecret;
+
     private final RestClient restClient = RestClient.create();
 
     public List<SocialAccount> getConnectedAccounts(Long userId) {
@@ -84,6 +90,18 @@ public class SocialMediaService {
                     "&code_challenge=challenge" +
                     "&code_challenge_method=plain" +
                     "&scope=tweet.read%20tweet.write%20users.read%20offline.access";
+        } else if ("GOOGLE".equals(upperPlatform)) {
+            if (isMockMode(googleClientId)) {
+                return redirectUri + "?code=mock_google_code&state=" + state;
+            }
+            return "https://accounts.google.com/o/oauth2/v2/auth" +
+                    "?response_type=code" +
+                    "&client_id=" + googleClientId +
+                    "&redirect_uri=" + redirectUri +
+                    "&state=" + state +
+                    "&scope=https://www.googleapis.com/auth/calendar%20openid%20profile%20email" +
+                    "&access_type=offline" +
+                    "&prompt=consent";
         }
         throw new IllegalArgumentException("Unsupported platform: " + platform);
     }
@@ -120,6 +138,17 @@ public class SocialMediaService {
                 account.setProfileImageUrl("https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100");
             } else {
                 exchangeTwitterToken(account, code, redirectUri);
+            }
+        } else if ("GOOGLE".equals(upperPlatform)) {
+            if (isMockMode(googleClientId) || "mock_google_code".equals(code)) {
+                account.setAccessToken("mock_google_access_token_" + System.currentTimeMillis());
+                account.setRefreshToken("mock_google_refresh_token");
+                account.setExpiresAt(LocalDateTime.now().plusHours(1));
+                account.setSocialAccountId("google_mock_user_123");
+                account.setUsername(user.getFirstName() + " " + user.getLastName() + " (Google)");
+                account.setProfileImageUrl("https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=100");
+            } else {
+                exchangeGoogleToken(account, code, redirectUri);
             }
         }
 
@@ -336,5 +365,85 @@ public class SocialMediaService {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
+    }
+
+    private void exchangeGoogleToken(SocialAccount account, String code, String redirectUri) {
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("code", code);
+        body.add("redirect_uri", redirectUri);
+        body.add("client_id", googleClientId);
+        body.add("client_secret", googleClientSecret);
+
+        try {
+            Map<?, ?> response = restClient.post()
+                    .uri("https://oauth2.googleapis.com/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(body)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response != null && response.containsKey("access_token")) {
+                account.setAccessToken((String) response.get("access_token"));
+                if (response.containsKey("refresh_token")) {
+                    account.setRefreshToken((String) response.get("refresh_token"));
+                }
+                if (response.containsKey("expires_in")) {
+                    Number expiresVal = (Number) response.get("expires_in");
+                    account.setExpiresAt(LocalDateTime.now().plusSeconds(expiresVal.longValue()));
+                }
+
+                // Fetch Google user profile details
+                Map<?, ?> profile = restClient.get()
+                        .uri("https://www.googleapis.com/oauth2/v3/userinfo")
+                        .headers(h -> h.setBearerAuth(account.getAccessToken()))
+                        .retrieve()
+                        .body(Map.class);
+
+                if (profile != null) {
+                    account.setSocialAccountId((String) profile.get("sub"));
+                    account.setUsername((String) profile.get("name"));
+                    account.setProfileImageUrl((String) profile.get("picture"));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to exchange Google token", e);
+            throw new RuntimeException("Failed to connect Google Calendar: " + e.getMessage());
+        }
+    }
+
+    public String refreshGoogleAccessToken(SocialAccount account) {
+        if (account.getRefreshToken() == null || account.getRefreshToken().startsWith("mock_")) {
+            return account.getAccessToken();
+        }
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "refresh_token");
+        body.add("refresh_token", account.getRefreshToken());
+        body.add("client_id", googleClientId);
+        body.add("client_secret", googleClientSecret);
+
+        try {
+            Map<?, ?> response = restClient.post()
+                    .uri("https://oauth2.googleapis.com/token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(body)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response != null && response.containsKey("access_token")) {
+                String newAccessToken = (String) response.get("access_token");
+                account.setAccessToken(newAccessToken);
+                if (response.containsKey("expires_in")) {
+                    Number expiresVal = (Number) response.get("expires_in");
+                    account.setExpiresAt(LocalDateTime.now().plusSeconds(expiresVal.longValue()));
+                }
+                socialAccountRepository.save(account);
+                return newAccessToken;
+            }
+        } catch (Exception e) {
+            log.error("Failed to refresh Google access token", e);
+        }
+        return account.getAccessToken();
     }
 }

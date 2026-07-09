@@ -10,6 +10,7 @@ import com.personalbrand.enums.ContentStatus;
 import com.personalbrand.enums.EventType;
 import com.personalbrand.enums.Platform;
 import com.personalbrand.repository.CalendarRepository;
+import com.personalbrand.repository.SocialAccountRepository;
 import com.personalbrand.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,28 +30,55 @@ public class GoogleCalendarService {
 
     private final CalendarRepository calendarRepository;
     private final UserRepository userRepository;
+    private final SocialAccountRepository socialAccountRepository;
+    private final SocialMediaService socialMediaService;
 
     /**
      * Attempts to sync events from Google Calendar.
      * If no credentials are setup, it falls back to generating mock events to keep the application functional.
      */
     @Transactional
-    public void syncGoogleCalendar(Long userId, Calendar googleCalendarService) {
+    public void syncGoogleCalendar(Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             log.warn("User {} not found, skipping Google Calendar sync", userId);
             return;
         }
 
-        if (googleCalendarService == null) {
-            log.info("No active Google Calendar API client session found. Generating mock events for demonstration.");
+        var optAccount = socialAccountRepository.findByUserIdAndPlatform(userId, "GOOGLE");
+        if (optAccount.isEmpty()) {
+            log.info("No active Google Calendar API connection found. Generating mock events for demonstration.");
             generateDemoEvents(user);
             return;
         }
 
+        var account = optAccount.get();
+        String accessToken = account.getAccessToken();
+
+        // Check if token is expired and refresh if necessary (expires within 5 minutes)
+        if (account.getExpiresAt() != null && account.getExpiresAt().isBefore(LocalDateTime.now().plusMinutes(5))) {
+            log.info("Google access token expired or close to expiry, refreshing...");
+            accessToken = socialMediaService.refreshGoogleAccessToken(account);
+        }
+
+        if (accessToken == null || accessToken.startsWith("mock_")) {
+            log.info("Running Google Calendar sync in mock mode.");
+            generateDemoEvents(user);
+            return;
+        }
+
+        final String finalAccessToken = accessToken;
         try {
+            // Build the Google Calendar API client
+            com.google.api.client.http.HttpRequestInitializer requestInitializer = request -> request.getHeaders().setAuthorization("Bearer " + finalAccessToken);
+            Calendar calendarService = new Calendar.Builder(
+                    com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport(),
+                    com.google.api.client.json.gson.GsonFactory.getDefaultInstance(),
+                    requestInitializer
+            ).setApplicationName("AI-Personal-Brand-Marketing-Engine").build();
+
             // Retrieve next 10 events
-            Events events = googleCalendarService.events().list("primary")
+            Events events = calendarService.events().list("primary")
                     .setMaxResults(10)
                     .setTimeMin(new com.google.api.client.util.DateTime(System.currentTimeMillis()))
                     .setOrderBy("startTime")
@@ -58,7 +86,7 @@ public class GoogleCalendarService {
                     .execute();
             List<Event> items = events.getItems();
 
-            if (items.isEmpty()) {
+            if (items == null || items.isEmpty()) {
                 log.info("No upcoming events found in Google Calendar.");
                 return;
             }
@@ -90,11 +118,8 @@ public class GoogleCalendarService {
                 }
             }
 
-        } catch (GoogleJsonResponseException e) {
-            log.error("Google Calendar API returned error: {}", e.getDetails());
-            generateDemoEvents(user);
-        } catch (IOException e) {
-            log.error("IO Exception during Google Calendar sync: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("Error during Google Calendar sync", e);
             generateDemoEvents(user);
         }
     }
