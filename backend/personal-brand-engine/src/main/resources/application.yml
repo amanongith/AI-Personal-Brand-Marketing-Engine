@@ -33,6 +33,16 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:sk-test-key}
+      base-url: https://api.openai.com/v1
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.7
+          max-tokens: 2000
+
 server:
   port: ${PORT:8080}
   servlet:
@@ -43,15 +53,7 @@ jwt:
   expiration: 86400000
   refresh-expiration: 604800000
 
-spring-ai:
-  openai:
-    api-key: ${OPENAI_API_KEY:sk-test-key}
-    base-url: https://api.openai.com/v1
-    chat:
-      options:
-        model: gpt-4o-mini
-        temperature: 0.7
-        max-tokens: 2000
+
 
 social:
   linkedin:

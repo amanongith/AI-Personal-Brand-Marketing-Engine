@@ -54,16 +54,121 @@ public class OpenAIClient {
 
     private String getMockResponse(String userPrompt) {
         String lower = userPrompt.toLowerCase();
+        
+        // Profile Analysis
         if (lower.contains("analyze this personal brand profile") || lower.contains("actionable improvement suggestions") || lower.contains("brand positioning")) {
             return "[{\"title\":\"Optimize Post Scheduling\",\"priority\":\"HIGH\",\"reason\":\"Current posting consistency is 1.5 posts per week. Recommended frequency is 4 posts/week for maximum LinkedIn visibility.\"},{\"title\":\"Define Personal Brand Narrative\",\"priority\":\"HIGH\",\"reason\":\"Your profile niche is wide. Focus 70% of content on your core niche to build authority faster.\"},{\"title\":\"Leverage Scheduled Events\",\"priority\":\"MEDIUM\",\"reason\":\"Syncing events to calendar can trigger automatic social posts to capture audience growth.\"},{\"title\":\"Implement Engaging CTAs\",\"priority\":\"MEDIUM\",\"reason\":\"Drafts lack calls to action. Prompt comments by asking open-ended technical questions.\"}]";
-        } else if (lower.contains("linkedin") || lower.contains("professional")) {
-            return "🚀 Why Agentic Workflows Are Quietly Replacing Standard RAG in Production\n\nFor the past year, standard Retrieval-Augmented Generation (RAG) was the default architecture. But it has a major ceiling: it's purely reactive.\n\nHere is how Agentic AI takes it further:\n\n1. Multi-Step Reasoning: Instead of fetching docs once, agents can search, evaluate, refine, and query again if info is missing.\n2. Tool Integration: Agents don't just read; they execute code, call external APIs, and compute math.\n3. Self-Correction: If a query returns garbage, the agent rewrites its parameters and tries a new route.\n\nIn our production tests, transitioning from standard RAG to an agentic loop reduced hallucinations by over 42%.\n\nAre you building standard RAG, or are you moving to agentic setups? Let me know in the comments! 👇\n\n#AI #SoftwareEngineering #AgenticAI #MachineLearning";
-        } else if (lower.contains("twitter") || lower.contains("thread")) {
-            return "1/ RAG is dead. Well, standard RAG at least. 💀\n\nIn production, we are seeing a massive migration toward Agentic Workflows. Here is why the old document lookup isn't enough anymore. 👇\n\n2/ Standard RAG is purely reactive. It takes your query, does a vector search, and pushes it to the LLM. It gets one shot. If the search returns irrelevant fragments, you get a hallucination.\n\n3/ Agentic workflows add a loop. The agent can:\n• Check search quality\n• Query multiple sources\n• Evaluate its own output\n• Run tests\n\nWhat are you building right now? Standard RAG or agents? Drop your thoughts below!";
-        } else if (lower.contains("instagram") || lower.contains("caption")) {
-            return "Struggling to build reliable AI applications? 🤖\n\nStandard RAG (Retrieval-Augmented Generation) was a great starting point, but it's too reactive for complex business logics. That's why we're moving to Agentic Workflows.\n\nAgentic AI has loops, reasoning paths, and tool access. It doesn't just retrieve; it decides, verifies, and executes.\n\nSwipe to see our production comparison matrix! ➡️\n\n#aimarketing #aipost #saasfounder #agenticai #softwareengineer #techcreator";
         }
-        
-        return "✨ Tailored AI Content Draft:\n\nHere is a draft designed by the AI Marketing Engine to engage your audience. Adjust this draft to match your style before publishing.\n\nKey Takeaway: Build consistent value and establish authority daily!\n\n#PersonalBranding #MarketingEngine";
+
+        // Try to dynamically extract topic, tone, and niche
+        String topic = "Building consistency and value in public";
+        String tone = "professional";
+        String niche = "Technology";
+
+        // Extract topic
+        if (lower.contains("about ")) {
+            int startIdx = lower.indexOf("about ") + 6;
+            int endIdx = lower.indexOf(".", startIdx);
+            if (endIdx == -1) endIdx = lower.indexOf("\n", startIdx);
+            if (endIdx == -1) endIdx = lower.length();
+            String sub = userPrompt.substring(startIdx, endIdx).trim();
+            if (sub.toLowerCase().contains(" in the ")) {
+                sub = sub.substring(0, sub.toLowerCase().indexOf(" in the "));
+            }
+            if (!sub.isEmpty()) {
+                topic = sub;
+            }
+        }
+
+        // Extract tone
+        if (lower.contains("tone: ")) {
+            int startIdx = lower.indexOf("tone: ") + 6;
+            int endIdx = lower.indexOf(".", startIdx);
+            if (endIdx == -1) endIdx = lower.indexOf("\n", startIdx);
+            if (endIdx == -1) endIdx = lower.length();
+            String sub = userPrompt.substring(startIdx, endIdx).trim();
+            if (!sub.isEmpty()) {
+                tone = sub;
+            }
+        }
+
+        // Extract niche
+        if (lower.contains("niche: ")) {
+            int startIdx = lower.indexOf("niche: ") + 7;
+            int endIdx = lower.indexOf(".", startIdx);
+            if (endIdx == -1) endIdx = lower.indexOf("\n", startIdx);
+            if (endIdx == -1) endIdx = lower.length();
+            String sub = userPrompt.substring(startIdx, endIdx).trim();
+            if (!sub.isEmpty()) {
+                niche = sub;
+            }
+        } else if (lower.contains("in the ")) {
+            int startIdx = lower.indexOf("in the ") + 7;
+            int endIdx = lower.indexOf(" niche", startIdx);
+            if (endIdx != -1) {
+                String sub = userPrompt.substring(startIdx, endIdx).trim();
+                if (!sub.isEmpty()) {
+                    niche = sub;
+                }
+            }
+        }
+
+        String safeNiche = niche.replaceAll("[^a-zA-Z0-9]", "");
+        String safeTopic = topic.replaceAll("[^a-zA-Z0-9]", "");
+
+        // Generate tailored outputs based on platform keywords
+        if (lower.contains("linkedin") || lower.contains("professional")) {
+            return String.format(
+                "🚀 Let's talk about %s in the context of %s.\n\n" +
+                "In my experience, many creators struggling to build their brand in %s overlook this exact area. " +
+                "But the reality is: authority isn't about broadcast—it's about building value in public, one connection at a time.\n\n" +
+                "Here are my top takeaways to implement today:\n" +
+                "1. Focus on depth over breadth. Break down a specific real-world example.\n" +
+                "2. Share the 'why' behind %s, not just the 'what'. People connect with lessons and logic.\n" +
+                "3. Use actionable calls-to-action to spark conversational threads.\n\n" +
+                "How are you approaching %s in your workflow? Let's discuss in the comments! 👇\n\n" +
+                "#%s #%s #ThoughtLeadership #PersonalBranding",
+                topic, niche, niche, topic, topic, safeNiche, safeTopic
+            );
+        } else if (lower.contains("twitter") || lower.contains("thread")) {
+            return String.format(
+                "1/ Let's dive into %s in the %s space. 🧵\n\n" +
+                "It's easy to get lost in the noise, but a few key principles can help you stand out. Here is what you need to know. 👇\n\n" +
+                "2/ First, focus on actionable insights. People bookmark threads that they can reference later. Share templates, tools, or step-by-step processes related to %s.\n\n" +
+                "3/ Second, keep it clear and punchy. Eliminate filler words. Twitter rewards brief, high-impact statements.\n\n" +
+                "4/ Third, tell a story. Relate the lessons of %s back to a real project or mistake you made. People connect with people, not abstract concepts.\n\n" +
+                "5/ What is your main goal with %s? Drop it below! 🚀",
+                topic, niche, topic, topic, topic
+            );
+        } else if (lower.contains("instagram") || lower.contains("caption")) {
+            return String.format(
+                "Want to master %s in your %s niche? 🎯\n\n" +
+                "Building authority doesn't happen overnight. It takes consistency, storytelling, and real engagement.\n\n" +
+                "Swipe to see our step-by-step framework for success! ➡️\n\n" +
+                "Which step are you starting with today? let me know below! 👇\n\n" +
+                "#%s #%s #aiagent #contentcreator",
+                topic, niche, safeNiche, safeTopic
+            );
+        } else if (lower.contains("hashtags")) {
+            return String.format(
+                "#%s #%s #thoughtleadership #personalbrand #creator #marketing #strategy #growth #networking #futureofwork",
+                safeNiche, safeTopic
+            );
+        } else if (lower.contains("call-to-action") || lower.contains("cta")) {
+            return String.format(
+                "1. What is your go-to strategy for %s? Let me know in the comments!\n" +
+                "2. Share this post if you found these tips on %s helpful!\n" +
+                "3. DM me if you want a custom template for your %s strategy.",
+                topic, topic, niche
+            );
+        }
+
+        return String.format(
+            "✨ AI Content Draft (Topic: %s | Tone: %s):\n\n" +
+            "Here is a draft designed by the AI Marketing Engine focusing on %s.\n\n" +
+            "Key Takeaway: Build consistent value in your niche (%s) to establish trust and authority.\n\n" +
+            "#%s #PersonalBranding",
+            topic, tone, topic, niche, safeNiche
+        );
     }
 }
