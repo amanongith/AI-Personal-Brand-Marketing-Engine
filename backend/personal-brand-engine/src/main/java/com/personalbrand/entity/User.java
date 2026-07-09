@@ -34,7 +34,7 @@ public class User {
     @Column(nullable = false, length = 50)
     private UserRole role;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String profileImage;
 
     @Column
